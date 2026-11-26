@@ -1,25 +1,10 @@
-import 'package:flutter/material.dart';
-import '../models/history_entry.dart';
+import 'package:material_ui/material_ui.dart';
+import '../state/counter_state.dart';
 import '../widgets/history_badge.dart';
 import 'history_screen.dart';
 
 class CounterScreen extends StatefulWidget {
-  final int counter;
-  final List<HistoryEntry> history;
-  final ValueChanged<int> onIncrement;
-  final ValueChanged<int> onDecrement;
-  final VoidCallback onReset;
-  final VoidCallback onClearHistory;
-
-  const CounterScreen({
-    super.key,
-    required this.counter,
-    required this.history,
-    required this.onIncrement,
-    required this.onDecrement,
-    required this.onReset,
-    required this.onClearHistory,
-  });
+  const CounterScreen({super.key});
 
   @override
   State<CounterScreen> createState() => _CounterScreenState();
@@ -28,8 +13,8 @@ class CounterScreen extends StatefulWidget {
 class _CounterScreenState extends State<CounterScreen> {
   int _selectedStep = 1;
 
-  void _handleDecrement() {
-    if (widget.counter - _selectedStep < 0) {
+  void _handleDecrement(CounterState state) {
+    if (state.counter - _selectedStep < 0) {
       ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -39,27 +24,23 @@ class _CounterScreenState extends State<CounterScreen> {
       );
       return;
     }
-    widget.onDecrement(_selectedStep);
+    state.decrement(_selectedStep);
   }
 
   @override
   Widget build(BuildContext context) {
     debugPrint('build: CounterScreen');
+    final state = CounterScope.of(context);
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Лічильник (Етап 1)'),
+        title: const Text('Лічильник (Етап 2)'),
         actions: [
           HistoryBadge(
-            count: widget.history.length,
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (_) => HistoryScreen(
-                    history: widget.history,
-                    onClearHistory: widget.onClearHistory,
-                  ),
-                ),
+                MaterialPageRoute(builder: (_) => const HistoryScreen()),
               );
             },
           ),
@@ -71,12 +52,7 @@ class _CounterScreenState extends State<CounterScreen> {
           children: [
             const Text('Поточне значення:', style: TextStyle(fontSize: 18)),
             const SizedBox(height: 8),
-            Text(
-              '${widget.counter}',
-              style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-            ),
+            const _CounterValueText(),
             const SizedBox(height: 32),
             const Text('Оберіть крок зміни:'),
             const SizedBox(height: 8),
@@ -98,27 +74,53 @@ class _CounterScreenState extends State<CounterScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 FilledButton.tonalIcon(
-                  onPressed: _handleDecrement,
+                  onPressed: () => _handleDecrement(state),
                   icon: const Icon(Icons.remove),
                   label: Text('-$_selectedStep'),
                 ),
                 const SizedBox(width: 16),
                 FilledButton.icon(
-                  onPressed: () => widget.onIncrement(_selectedStep),
+                  onPressed: () => state.increment(_selectedStep),
                   icon: const Icon(Icons.add),
                   label: Text('+$_selectedStep'),
                 ),
               ],
             ),
             const SizedBox(height: 16),
-            OutlinedButton.icon(
-              onPressed: widget.counter == 0 ? null : widget.onReset,
-              icon: const Icon(Icons.refresh),
-              label: const Text('Скинути'),
-            ),
+            const _ResetButton(),
           ],
         ),
       ),
+    );
+  }
+}
+
+class _CounterValueText extends StatelessWidget {
+  const _CounterValueText();
+
+  @override
+  Widget build(BuildContext context) {
+    debugPrint('build: _CounterValueText');
+    final counter = CounterScope.of(context).counter;
+    return Text(
+      '$counter',
+      style: Theme.of(context).textTheme.displayLarge?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
+    );
+  }
+}
+
+class _ResetButton extends StatelessWidget {
+  const _ResetButton();
+
+  @override
+  Widget build(BuildContext context) {
+    final state = CounterScope.of(context);
+    return OutlinedButton.icon(
+      onPressed: state.counter == 0 ? null : state.reset,
+      icon: const Icon(Icons.refresh),
+      label: const Text('Скинути'),
     );
   }
 }

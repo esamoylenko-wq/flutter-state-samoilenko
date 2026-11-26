@@ -1,32 +1,25 @@
-import 'package:flutter/material.dart';
-import '../models/history_entry.dart';
+import 'package:material_ui/material_ui.dart';
+import '../state/counter_state.dart';
 import '../widgets/history_badge.dart';
 
 class HistoryScreen extends StatelessWidget {
-  final List<HistoryEntry> history;
-  final VoidCallback onClearHistory;
-
-  const HistoryScreen({
-    super.key,
-    required this.history,
-    required this.onClearHistory,
-  });
+  const HistoryScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     debugPrint('build: HistoryScreen');
+    final state = CounterScope.of(context);
+    final history = state.history;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Історія змін'),
         actions: [
-          HistoryBadge(
-            count: history.length,
-            onPressed: () {},
-          ),
+          const HistoryBadge(),
           if (history.isNotEmpty)
             IconButton(
               onPressed: () {
-                onClearHistory();
+                state.clearHistory();
                 Navigator.pop(context);
               },
               icon: const Icon(Icons.delete_outline),
