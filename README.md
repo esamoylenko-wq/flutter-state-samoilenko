@@ -1,17 +1,68 @@
-# flutter_state_samoilenko
+# Практична робота 6.1: Базовий State Management у Flutter
 
-A new Flutter project.
+**Виконав:** Самойленко Є.  
+**Варіант 1:** Лічильник з історією
 
-## Getting Started
+## Опис проєкту та інструкція запуску
 
-This project is a starting point for a Flutter application.
+Мобільний та веб-застосунок «Лічильник з історією», розроблений виключно засобами Flutter SDK без сторонніх пакетів керування станом. Застосунок дозволяє збільшувати та зменшувати значення лічильника з обраним кроком (`1`, `5`, `10`), захищає від від'ємних значень за допомогою сповіщень (`SnackBar`), зберігає повну історію змін із фіксацією часу та дозволяє переглядати або очищувати її.
 
-A few resources to get you started if this is your first Flutter project:
+### Інструкція запуску:
+1. Клонувати репозиторій:
+   ```bash
+   git clone https://github.com/esamoylenko-wq/flutter-state-samoilenko.git
+   cd flutter-state-samoilenko
+   ```
+2. Завантажити залежності та запустити проєкт:
+   ```bash
+   flutter pub get
+   flutter run
+   ```
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+---
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Таблиця розподілу стану (State Management)
+
+| Дані (Стан) | Тип стану | Де зберігається | Чому саме там |
+| :--- | :--- | :--- | :--- |
+| `_counter` (поточне значення) | Стан застосунку (App State) | `CounterState` (`ChangeNotifier`) через `CounterScope` | Використовується для відображення на головному екрані, керування доступністю кнопки «Скинути» та створення записів історії. |
+| `_history` (список змін) | Стан застосунку (App State) | `CounterState` (`ChangeNotifier`) через `CounterScope` | Спільний стан для кількох рівнів і екранів: використовується для лічильника бейджа в `AppBar` та списку на екрані `HistoryScreen`. |
+| `_selectedStep` (крок `1 / 5 / 10`) | Ефемерний стан (Ephemeral State) | `_CounterScreenState` (`setState`) | Впливає виключно на локальний стан інтерфейсу головного екрана (вибір сегмента та підписи кнопок) і не потрібен іншим екранам. |
+
+---
+
+## Журнал перебудов віджетів (Етап 2: `InheritedNotifier`)
+
+Фрагмент журналу консолі (`debugPrint`) після запуску застосунку та натискання кнопки **`+1`**:
+
+```text
+flutter: build: MyApp
+flutter: build: CounterScreen
+flutter: build: HistoryBadge
+flutter: build: _CounterValueText
+--- Натискання кнопки "+1" ---
+flutter: build: HistoryBadge
+flutter: build: _CounterValueText
+```
+
+**Висновок:** Завдяки підписці на `CounterScope.of(context)` лише в точкових віджетах (`_CounterValueText` та `HistoryBadge`), при зміні значення лічильника весь екран `CounterScreen` та кореневий `MyApp` не перебудовуються.
+
+---
+
+## Скріншоти основних екранів
+
+### Головний екран лічильника
+![Головний екран](screenshots/main_screen.png)
+
+### Екран історії змін
+![Екран історії](screenshots/history_screen.png)
+
+---
+
+## Декларація використання ШІ
+
+* **Назва інструменту ШІ:** Gemini.
+* **Мета використання:** Допомога в організації файлової структури проєкту відповідно до вимог методичних вказівок, налаштування роботи з Git/GitHub та рефакторинг керування станом із `setState` на `InheritedNotifier`.
+* **Текстовий запит (промпт):** Поетапні запити щодо створення структури папок `models/state/screens/widgets`, реалізації незмінної моделі історії, налаштування `InheritedNotifier` для точкової перебудови віджетів та вирішення попереджень `flutter analyze` для актуальної версії Flutter SDK.
+* **Фрагменти згенерованого контенту, що увійшли до роботи:** Базові шаблони класів `HistoryEntry`, `CounterState`, `CounterScope` та структура віджетів `CounterScreen`, `HistoryScreen`, `HistoryBadge`.
+* **Опис власного доопрацювання:** Самостійно розгорнуто та налаштовано середовище розробки на macOS, створено репозиторій і структуру папок, протестовано роботу застосунку у браузері та перевірено відсутність попереджень через `flutter analyze`, виконано фіксацію етапів у Git (`stage-1-lifting`, `stage-2-inherited`), знято скріншоти та оформлено документацію.
